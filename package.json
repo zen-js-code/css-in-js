@@ -1,0 +1,8 @@
+{
+  "name": "css-in-js",
+  "version": "0.0.1",
+  "description": "A set of examples and experiments for CSS-in-JS Web4WD talk",
+  "repository": "https://github.com/zen-js-code/css-in-js.git",
+  "author": "Dmitry Nutels <dnutels@gmail.com>",
+  "license": "MIT"
+}
