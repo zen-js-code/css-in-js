@@ -3,7 +3,18 @@
 const PATH = require('path');
 
 const webpack = require('webpack');
+const merge = require('webpack-merge');
+
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const OptimizeJsPlugin = require('optimize-js-plugin');
+const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
+
+const TARGET = process.env.npm_lifecycle_event;
+const DEV = (['build'].indexOf(TARGET) < 0);
+
+console.log(`Running in ${DEV ? 'development' : 'production'} mode...`);
 
 const ROOT = '.';
 
@@ -20,7 +31,7 @@ const PUBLIC_PATH = `/${JS_DIR}/`;
 const PUBLIC_DIR = PATH.resolve(__dirname, ROOT, 'dist/');
 const JS_ASSETS_DIR =  PATH.resolve(PUBLIC_DIR, `${JS_DIR}/`);
 
-const config = {
+const BASE_CONFIG = {
     entry: {
         app: [
             'react-hot-loader/patch',
@@ -34,7 +45,7 @@ const config = {
         publicPath: PUBLIC_PATH
     },
     cache: true,
-    devtool: 'source-map',
+    devtool: 'cheap-module-eval-source-map',
     devServer: {
         stats: 'minimal',
         clientLogLevel: 'warning',
@@ -53,6 +64,13 @@ const config = {
         }
     },
     plugins: [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            filename: '[name].js',
+            minChunks: (module) => {
+                return module.context && module.context.indexOf('node_modules') !== -1;
+            }
+        }),
         new webpack.NamedModulesPlugin(),
         new HtmlWebpackPlugin({
             hash: false,
@@ -78,5 +96,34 @@ const config = {
         ]
     }
 };
+
+const PROD_CONFIG = {
+    output: {
+        filename: '[name]-[chunkhash].js',
+        chunkFilename: '[id]-[chunkhash].js'
+    },
+    devtool: false,
+    plugins: [
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            filename: '[name]-[chunkhash].js'
+        }),
+        new ScriptExtHtmlWebpackPlugin({
+            defaultAttribute: 'async'
+        }),
+        new CleanWebpackPlugin([PUBLIC_DIR]),
+        new webpack.HashedModuleIdsPlugin(),
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: JSON.stringify('production')
+            }
+        }),
+        new UglifyJsPlugin({extractComments: true}),
+        new OptimizeJsPlugin({sourceMap: false}),
+        new webpack.optimize.ModuleConcatenationPlugin()
+    ]
+};
+
+const config = !DEV ? merge({}, BASE_CONFIG, PROD_CONFIG) : BASE_CONFIG;
 
 module.exports = config;
