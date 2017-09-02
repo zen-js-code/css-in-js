@@ -20,6 +20,15 @@ Within differently styled pages:
 2. Redefine visual implementation of an element within a page
 3. ...
 
+Within these scenarios the "usual suspects" are evaluated as well:
+
+1. code minification (JS and CSS)
+2. code extraction (where possible/relevant)
+3. source maps and debugging
+4. chunking and hashing of artifacts
+4. WDS + HMR
+5. ...
+
 ## Setup
 
 `master` branch contains the sample application, fully functional but __un-styled__.
